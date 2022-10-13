@@ -1,52 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, ImageBackground, Image, Text, TextInput, View, Pressable, Alert } from 'react-native';
+import React from 'react';
+import { StyleSheet, Image, Text, View } from 'react-native';
 
-function ChatScreen({ navigation }, props) {
-    const [messageType, setMessageType] = useState('');
+export default function ChatMsg(props) {
+    const msgType = props.msgType;
+    const message = props.message;
 
-    return (
-        //I'm going to make a component for Chat messages so that I only need to pass in a message and sender and it renders dynamically in a list
-        <View style={styles.container}>
+    const botView = () => {
+        return (
             <View style={styles.botMsg}>
                 <View style={styles.botLogo}>
                     <Image source={require('../Images/chatbot-64.png')} style={{ height: 20, width: 20 }} />
                 </View>
                 <View style={styles.botChat}>
-                    <Text style={styles.TextInput}>Thankyou for using the USIU Buzzbot. Please ask me anything!</Text>
+                    <Text style={styles.TextInput}>{message}</Text>
                 </View>
             </View>
+        )
+    };
 
+    const userView = () => {
+        return(
             <View style={styles.userMsg}>
-                <View style={styles.userChat}>
-                    <Text style={styles.TextInput}>Hey Buzzbot. What classes do I have today?</Text>
-                </View>
-                <View style={styles.userLogo}>
-                    <Image source={require('../Images/user.png')} style={{ height: 20, width: 20 }} />
-                </View>
+            <View style={styles.userChat}>
+                <Text style={styles.TextInput}>{message}</Text>
             </View>
-
-            <View style={styles.botMsg}>
-                <View style={styles.botLogo}>
-                    <Image source={require('../Images/chatbot-64.png')} style={{ height: 20, width: 20 }} />
-                </View>
-                <View style={styles.botChat}>
-                    <Text style={styles.TextInput}>You have the following classes:{'\n\n'}F 9.00AM NIRO FS LAB4 - APT3010{'\n'}</Text>
-                </View>
-            </View>
-
-            <View style={styles.userMsg}>
-                <View style={styles.userChat}>
-                    <Text style={styles.TextInput}>Thanks Buzzbot!</Text>
-                </View>
-                <View style={styles.userLogo}>
-                    <Image source={require('../Images/user.png')} style={{ height: 20, width: 20 }} />
-                </View>
+            <View style={styles.userLogo}>
+                <Image source={require('../Images/user.png')} style={{ height: 20, width: 20 }} />
             </View>
         </View>
-    );
-}
+        )
+    };
 
-export default ChatScreen;
+    return (
+        <View>
+            {msgType === "bot"
+            ? botView()
+            : userView()}
+        </View>
+    )
+
+}
 
 const styles = StyleSheet.create({
     container: {
