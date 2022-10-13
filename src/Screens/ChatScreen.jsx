@@ -10,7 +10,7 @@ function ChatScreen({ navigation }, props) {
         <View style={styles.container}>
             <ChatMsg msgType= "bot" message="Thankyou for using the USIU Buzzbot. Please ask me anything!"/>
             <ChatMsg msgType= "user" message="Hey Buzzbot. What classes do I have today?"/>
-            <ChatMsg msgType= "bot" message="You have the following classes:{'\n\n'}F 9.00AM NIRO FS LAB4 - APT3010{'\n'}"/>
+            <ChatMsg msgType= "bot" message={"You have the following classes:\n\nF 9.00AM NIRO FS LAB4 - APT3010\n"}/>
             <ChatMsg msgType= "user" message="Thanks Buzzbot!"/>
         </View>
     );
