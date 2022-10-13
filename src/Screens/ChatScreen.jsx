@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ImageBackground, Image, Text, TextInput, View, Pressable, Alert } from 'react-native';
 import ChatMsg from "../Components/ChatMsg";
+import MessageBar from "../Components/MessageBar";
 
 function ChatScreen({ navigation }, props) {
     const [messageType, setMessageType] = useState('');
@@ -12,6 +13,7 @@ function ChatScreen({ navigation }, props) {
             <ChatMsg msgType= "user" message="Hey Buzzbot. What classes do I have today?"/>
             <ChatMsg msgType= "bot" message={"You have the following classes:\n\nF 9.00AM NIRO FS LAB4 - APT3010\n"}/>
             <ChatMsg msgType= "user" message="Thanks Buzzbot!"/>
+            <MessageBar/>
         </View>
     );
 }

@@ -20,7 +20,7 @@ function HomeScreen({ navigation }) {
                     <Image source={require('../Images/chatbot-64.png')} style={{ height: 64, width: 64 }} />
                 </View>
                 <View>
-                    <Text style={styles.welcome}>Welcome to USIU Buzz!</Text>
+                    <Text style={styles.welcome}>Welcome to USIU BuzzBot</Text>
                 </View>
                 <View>
                     <Text style={{ fontFamily: "Playfair", fontSize: 14, color: "#FCCC06", marginTop: 10, marginBottom: 5 }}>Please login with your CX credentials</Text>
