@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, ImageBackground, Image, Text, TextInput, View, Pressable, Alert } from 'react-native';
+import { StyleSheet, Keyboard, Image, Text, TextInput, View, Pressable, Alert } from 'react-native';
 
 export default function MessageBar() {
     const [message, setMessage] = useState('');
 
     const sendMessage = async () => {
+        Keyboard.dismiss();
         Alert.alert("You message is", message);
     }
 
