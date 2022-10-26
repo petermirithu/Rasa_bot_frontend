@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { StyleSheet, Keyboard, Image, Text, TextInput, View, Pressable, Alert } from 'react-native';
 
-export default function MessageBar() {
-    const [message, setMessage] = useState('');
+export default function MsgBar() {
+    const [msg, setMsg] = useState('');
 
-    const sendMessage = async () => {
+    const sendMsg = async () => {
         Keyboard.dismiss();
-        Alert.alert("You message is", message);
+        setMsg(msg);
+        Alert.alert("Your msg is", msg);
     }
 
     return (
@@ -14,12 +15,12 @@ export default function MessageBar() {
             <View style={styles.inputView}>
                 <TextInput
                     style={styles.TextInput}
-                    placeholder="Please type your message here"
+                    placeholder="Please type your msg here"
                     placeholderTextColor="#003f5c"
-                    onChangeText={(message) => setMessage(message)}
+                    onChangeText={(msg) => setMsg(msg)}
                 />
             </View>
-            <Pressable style={styles.botLogo} onPress={sendMessage}>
+            <Pressable style={styles.botLogo} onPress={sendMsg}>
                 <Image source={require('../Images/send.png')} style={{ height: 32, width: 32 }} /></Pressable>
         </View>
     )
