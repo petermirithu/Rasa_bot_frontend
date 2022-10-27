@@ -7,7 +7,8 @@ function HomeScreen({ navigation }) {
 
     const loginUser = async () => {
         //Alert.alert("Login Successful", "You have successfully logged in.");
-        navigation.navigate('Chat');
+        //navigation.navigate('Chat');
+        navigation.navigate('Flatlist');
     }
 
     return (

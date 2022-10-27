@@ -19,23 +19,23 @@ export default function ChatMsg(props) {
     };
 
     const userView = () => {
-        return(
+        return (
             <View style={styles.userMsg}>
-            <View style={styles.userChat}>
-                <Text style={styles.TextInput}>{message}</Text>
+                <View style={styles.userChat}>
+                    <Text style={styles.TextInput}>{message}</Text>
+                </View>
+                <View style={styles.userLogo}>
+                    <Image source={require('../Images/user.png')} style={{ height: 20, width: 20 }} />
+                </View>
             </View>
-            <View style={styles.userLogo}>
-                <Image source={require('../Images/user.png')} style={{ height: 20, width: 20 }} />
-            </View>
-        </View>
         )
     };
 
     return (
         <View>
             {msgType === "bot"
-            ? botView()
-            : userView()}
+                ? botView()
+                : userView()}
         </View>
     )
 
