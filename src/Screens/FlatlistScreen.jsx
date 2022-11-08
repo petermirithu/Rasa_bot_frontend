@@ -1,26 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Keyboard, Image, Text, TextInput, Pressable, FlatList } from 'react-native';
 import ChatMsg from "../Components/ChatMsg";
+import axios from 'axios';
+
+//const url = 'https://e360-41-89-4-199.in.ngrok.io/webhooks/rest/webhook';
+const baseURL = `http://192.168.0.11:4000/message`;
 
 function FlatlistScreen({ navigation }, props) {
     const [msg, setMsg] = useState('');
     const [messages, setMessages] = useState([]);
     const [botMsg, setBotMsg] = useState('');
     const scrollViewRef = useRef();
+    const myTextInput = useRef();
 
-    //const url = 'https://de3f-196-207-189-58.ap.ngrok.io/webhooks/rest/webhook';
-    const url = 'http://192.168.0.11:4000/message';
+
 
     useEffect(() => {
-        const msgs = [{ key: 101, msgType: "bot", message: "Thankyou for using the USIU Buzzbot. Please ask me anything!" },
-        { key: 102, msgType: "user", message: "Hey Buzzbot. What classes do I have today?" },
-        { key: 103, msgType: "bot", message: "You have the following classes:\n\nF 9.00AM NIRO FS LAB4 - APT3010\n" },
-        { key: 104, msgType: "user", message: "Thanks Buzzbot!" },
-        { key: 105, msgType: "bot", message: "Anytime!" },
-        { key: 106, msgType: "user", message: "Hey Buzzbot." },
-        { key: 107, msgType: "bot", message: "Good evening. How may I help you?" },
-        { key: 108, msgType: "user", message: "I was wondering what assignments I have due this week?" },
-        { key: 109, msgType: "bot", message: "You have the following assignments due this week:\n\nSEN4800C - PERSONALITY EVALUATION is due on 28-OCT-2022 at 11:59PM.\n\nAPT3010 - PROJECT PRESENTATION is due on 27-OCT-2022 at 5:45PM." }];
+        const msgs = [
+            { key: 101, msgType: "bot", message: "Thankyou for using the USIU Buzzbot. Please ask me anything!" },
+            // { key: 102, msgType: "user", message: "Hey Buzzbot. What classes do I have today?" },
+            // { key: 103, msgType: "bot", message: "You have the following classes:\n\nF 9.00AM NIRO FS LAB4 - APT3010\n" },
+            // { key: 104, msgType: "user", message: "Thanks Buzzbot!" },
+            // { key: 105, msgType: "bot", message: "Anytime!" },
+            // { key: 106, msgType: "user", message: "Hey Buzzbot." },
+            // { key: 107, msgType: "bot", message: "Good evening. How may I help you?" },
+            // { key: 108, msgType: "user", message: "I was wondering what assignments I have due this week?" },
+            // { key: 109, msgType: "bot", message: "You have the following assignments due this week:\n\nSEN4800C - PERSONALITY EVALUATION is due on 28-OCT-2022 at 11:59PM.\n\nAPT3010 - PROJECT PRESENTATION is due on 27-OCT-2022 at 5:45PM." }
+        ];
         setMessages(msgs);
     }, []);
 
@@ -30,35 +36,26 @@ function FlatlistScreen({ navigation }, props) {
 
     const sendMsg = async () => {
         Keyboard.dismiss();
-        msgs = messages;
+        let mymsgs = messages;
 
-        let kay = 101 + msgs.length;
-        msgs.push({ key: kay, msgType: "user", message: msg });
-        setMessages(msgs);
+        let kay = 101 + mymsgs.length;
+        mymsgs.push({ key: kay, msgType: "user", message: msg });
+        setMessages(mymsgs);
+        myTextInput.current.clear();
 
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    sender: "Mich",
-                    message: msg
-                })
+        axios
+            .post(baseURL, {
+                sender: "Mich",
+                message: msg
+            })
+            .then((response) => {
+                //console.log(response.data[0].text);
+                setBotMsg(response.data[0].text);
+                let botkay = 101 + mymsgs.length;
+                mymsgs.push({ key: botkay, msgType: "bot", message: botMsg });
+                botMsg.clear;
+                setMessages(mymsgs);
             });
-            let json = await response.json();
-            //console.log(json);
-            //console.log(json[0].text);
-            setBotMsg(json[0].text);
-        } catch (error) {
-            console.log(error);
-        }
-
-        let botkay = 101 + msgs.length;
-        msgs.push({ key: botkay, msgType: "bot", message: botMsg });
-        setMessages(msgs);
     }
 
     return (
@@ -75,9 +72,10 @@ function FlatlistScreen({ navigation }, props) {
                 <View style={styles.inputView}>
                     <TextInput
                         style={styles.TextInput}
-                        placeholder="Please type your msg here"
+                        placeholder="Please type your message here"
                         placeholderTextColor="#003f5c"
                         onChangeText={(msg) => setMsg(msg)}
+                        ref={myTextInput}
                     />
                 </View>
                 <Pressable style={styles.botLogo} onPress={sendMsg}>
