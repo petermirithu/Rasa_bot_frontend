@@ -1,26 +1,94 @@
-import React from 'react';
-import { StyleSheet, Image, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Image, Text, View, Keyboard } from 'react-native';
+import { Button } from 'react-native-paper';
+import { messages$, postMessageToServer, updateMessages } from '../Services/ChatService';
 
-export default function ChatMsg(props) {
-    const msgType = props.msgType;
-    const message = props.message;
+export default function ChatMsg({ msgType, message, buttons = [] }) {
+    const [messages, setMessages] = useState([]);
+    const [loaded, setLoaded] = useState(false);
+
+    const submitResponse = (data) => {
+        Keyboard.dismiss();
+
+        let mymsgs = [...messages];
+
+        let kay = 101 + mymsgs.length;
+        mymsgs.push({ key: kay, msgType: "user", message: data});
+        updateMessages(mymsgs);        
+
+        mymsgs.push({ key: (kay+mymsgs.length), msgType: "bot", message: "Typing" });        
+        updateMessages(mymsgs);
+
+        const payload = {
+            sender: "435253",
+            message: data,
+        }
+
+        const index=mymsgs.findIndex(x=>x?.message=="Typing");
+
+        postMessageToServer(payload).then((response) => {
+            if(index>=0){
+                mymsgs.splice(index,1);
+                updateMessages(mymsgs);      
+            }
+            for (let item of response.data) {
+                if (item?.text) {
+                    let botkay = 101 + mymsgs.length;
+                    mymsgs.push({ key: botkay, msgType: "bot", message: item.text });
+                }
+                if (item?.buttons) {
+                    let botkay = 101 + mymsgs.length;
+                    mymsgs.push({ key: botkay, msgType: "bot", buttons: item.buttons });
+                }
+                updateMessages(mymsgs);
+            }
+        }).catch(error => {            
+            if(index>=0){
+                mymsgs.splice(index,1);
+                updateMessages(mymsgs);      
+            }
+            alert("An error occured while sending your message")
+        });
+    }
+
+    const renderButton = (datum, index) => {
+        return (
+            <Button style={styles.button} key={index} onPress={() => submitResponse(datum.payload)}>{datum.title}</Button>
+        )
+    }
 
     const botView = () => {
         return (
-            <View style={styles.botMsg}>
+            <View style={styles.botMsg} key="bot message">
                 <View style={styles.botLogo}>
-                    <Image source={require('../Images/chatbot-64.png')} style={{ height: 20, width: 20 }} />
+                    <Image key={"Bot Logo"} source={require('../Images/chatbot-64.png')} style={{ height: 20, width: 20 }} />
                 </View>
-                <View style={styles.botChat}>
-                    <Text style={styles.TextInput}>{message}</Text>
-                </View>
-            </View>
+                {buttons?.length == 0 ?
+                    <View style={styles.botChat}>
+                        {(message=="Typing")?
+                            <Image key={"loader"} source={require('../Images/loader.gif')} style={{ height: 20, width: 50 }} />
+                        :
+                            <Text style={styles.TextInput}>{message}</Text>
+                        }
+                    </View>
+                    :
+                    <View style={styles.botButtonView}>
+                        <View style={{ flexDirection: "row" }}>
+                            {
+                                buttons.map((datum, index) => {
+                                    return renderButton(datum, index);
+                                })
+                            }
+                        </View>
+                    </View>
+                }
+            </View >
         )
     };
 
     const userView = () => {
         return (
-            <View style={styles.userMsg}>
+            <View style={styles.userMsg} key="user message">
                 <View style={styles.userChat}>
                     <Text style={styles.TextInput}>{message}</Text>
                 </View>
@@ -30,6 +98,15 @@ export default function ChatMsg(props) {
             </View>
         )
     };
+
+    useEffect(() => {
+        if(loaded==false){
+            setLoaded(true)
+            messages$.subscribe(data=>{
+                setMessages([...data]);
+            });
+        }
+    }, [messages]);
 
     return (
         <View>
@@ -106,6 +183,11 @@ const styles = StyleSheet.create({
         minHeight: 50,
         padding: 15,
     },
+    botButtonView: {
+        width: "90%",
+        minHeight: 50,
+        padding: 15,
+    },
     inputView: {
         backgroundColor: "#FFE372",
         borderRadius: 10,
@@ -137,5 +219,9 @@ const styles = StyleSheet.create({
         height: 'auto',
         fontSize: 16,
         fontFamily: 'Playfair',
+    },
+    button: {
+        backgroundColor: "#fff",
+        marginRight: 20,
     }
 });

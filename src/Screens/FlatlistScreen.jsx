@@ -1,62 +1,77 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Keyboard, Image, Text, TextInput, Pressable, FlatList } from 'react-native';
 import ChatMsg from "../Components/ChatMsg";
-import axios from 'axios';
-
-//const url = 'https://e360-41-89-4-199.in.ngrok.io/webhooks/rest/webhook';
-const baseURL = `http://192.168.0.11:4000/message`;
+import { useIsFocused } from '@react-navigation/native';
+import { messages$, postMessageToServer, updateMessages } from '../Services/ChatService';
 
 function FlatlistScreen({ navigation }, props) {
-    const [msg, setMsg] = useState('');
+    const [msg, setMsg] = useState('Hello');
     const [messages, setMessages] = useState([]);
-    const [botMsg, setBotMsg] = useState('');
     const scrollViewRef = useRef();
     const myTextInput = useRef();
+    const [loaded, setLoaded] = useState(false);
 
 
-
-    useEffect(() => {
-        const msgs = [
-            { key: 101, msgType: "bot", message: "Thankyou for using the USIU Buzzbot. Please ask me anything!" },
-            // { key: 102, msgType: "user", message: "Hey Buzzbot. What classes do I have today?" },
-            // { key: 103, msgType: "bot", message: "You have the following classes:\n\nF 9.00AM NIRO FS LAB4 - APT3010\n" },
-            // { key: 104, msgType: "user", message: "Thanks Buzzbot!" },
-            // { key: 105, msgType: "bot", message: "Anytime!" },
-            // { key: 106, msgType: "user", message: "Hey Buzzbot." },
-            // { key: 107, msgType: "bot", message: "Good evening. How may I help you?" },
-            // { key: 108, msgType: "user", message: "I was wondering what assignments I have due this week?" },
-            // { key: 109, msgType: "bot", message: "You have the following assignments due this week:\n\nSEN4800C - PERSONALITY EVALUATION is due on 28-OCT-2022 at 11:59PM.\n\nAPT3010 - PROJECT PRESENTATION is due on 27-OCT-2022 at 5:45PM." }
-        ];
-        setMessages(msgs);
-    }, []);
-
-    const renderItem = ({ item }) => (
-        <ChatMsg key={item.key} msgType={item.msgType} message={item.message} />
-    );
+    const renderItem = (data) => {
+        return <ChatMsg key={data.item.key} msgType={data.item.msgType} message={data?.item?.message} buttons={data?.item?.buttons} />
+    };
 
     const sendMsg = async () => {
         Keyboard.dismiss();
-        let mymsgs = messages;
+        let mymsgs = [...messages];
 
         let kay = 101 + mymsgs.length;
-        mymsgs.push({ key: kay, msgType: "user", message: msg });
-        setMessages(mymsgs);
+        mymsgs.push({ key: kay, msgType: "user", message: msg });        
+        updateMessages(mymsgs);
         myTextInput.current.clear();
+        
+        mymsgs.push({ key: (kay+mymsgs.length), msgType: "bot", message: "Typing" });        
+        updateMessages(mymsgs);
 
-        axios
-            .post(baseURL, {
-                sender: "Mich",
-                message: msg
-            })
-            .then((response) => {
-                //console.log(response.data[0].text);
-                setBotMsg(response.data[0].text);
-                let botkay = 101 + mymsgs.length;
-                mymsgs.push({ key: botkay, msgType: "bot", message: botMsg });
-                botMsg.clear;
-                setMessages(mymsgs);
-            });
+        const payload = {
+            sender: "435253",
+            message: msg,
+        }        
+                
+        const index=mymsgs.findIndex(x=>x?.message=="Typing");
+
+        postMessageToServer(payload).then((response) => {     
+            if(index>=0){
+                mymsgs.splice(index,1);
+                updateMessages(mymsgs);      
+            }            
+            for (let item of response.data) {                
+                if(item?.text){
+                    let botkay = 101 + mymsgs.length;
+                    mymsgs.push({ key: botkay, msgType: "bot", message: item.text });
+                }
+                if(item?.buttons){                   
+                    let botkay = 101 + mymsgs.length; 
+                    mymsgs.push({ key: botkay, msgType: "bot", buttons: item.buttons });
+                }
+                updateMessages(mymsgs);                
+            }
+        }).catch(error => {
+            if(index>=0){
+                mymsgs.splice(index,1);
+                updateMessages(mymsgs);      
+            }                
+            console.log(error);
+            alert("An error occured while sending your message")
+        });
     }
+
+    useIsFocused();
+
+    useEffect(() => {
+        if(loaded==false){
+            setLoaded(true)
+            messages$.subscribe(data=>{
+                setMessages([...data]);
+            });            
+            sendMsg();
+        }        
+    }, [messages, msg]);
 
     return (
         <View style={styles.container}>
@@ -65,7 +80,7 @@ function FlatlistScreen({ navigation }, props) {
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
                 data={messages}
                 extraData={messages}
-                renderItem={renderItem}
+                renderItem={item => renderItem(item)}
                 keyExtractor={item => item.key}
             />
             <View style={styles.messageBar}>
