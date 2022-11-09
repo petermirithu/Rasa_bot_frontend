@@ -9,24 +9,21 @@ const baseURL = `http://192.168.0.11:4000/message`;
 function ChatScreen({ navigation }, props) {
     const [msg, setMsg] = useState('');
     const [messages, setMessages] = useState([]);
-    const [botMsg, setBotMsg] = useState('');
     const scrollViewRef = useRef();
     const myTextInput = useRef();
-
-
+    const msgs = [
+        { key: 101, msgType: "bot", message: "Thankyou for using the USIU Buzzbot. Please ask me anything!" },
+        // { key: 102, msgType: "user", message: "Hey Buzzbot. What classes do I have today?" },
+        // { key: 103, msgType: "bot", message: "You have the following classes:\n\nF 9.00AM NIRO FS LAB4 - APT3010\n" },
+        // { key: 104, msgType: "user", message: "Thanks Buzzbot!" },
+        // { key: 105, msgType: "bot", message: "Anytime!" },
+        // { key: 106, msgType: "user", message: "Hey Buzzbot." },
+        // { key: 107, msgType: "bot", message: "Good evening. How may I help you?" },
+        // { key: 108, msgType: "user", message: "I was wondering what assignments I have due this week?" },
+        // { key: 109, msgType: "bot", message: "You have the following assignments due this week:\n\nSEN4800C - PERSONALITY EVALUATION is due on 28-OCT-2022 at 11:59PM.\n\nAPT3010 - PROJECT PRESENTATION is due on 27-OCT-2022 at 5:45PM." }
+    ];
 
     useEffect(() => {
-        const msgs = [
-            { key: 101, msgType: "bot", message: "Thankyou for using the USIU Buzzbot. Please ask me anything!" },
-            // { key: 102, msgType: "user", message: "Hey Buzzbot. What classes do I have today?" },
-            // { key: 103, msgType: "bot", message: "You have the following classes:\n\nF 9.00AM NIRO FS LAB4 - APT3010\n" },
-            // { key: 104, msgType: "user", message: "Thanks Buzzbot!" },
-            // { key: 105, msgType: "bot", message: "Anytime!" },
-            // { key: 106, msgType: "user", message: "Hey Buzzbot." },
-            // { key: 107, msgType: "bot", message: "Good evening. How may I help you?" },
-            // { key: 108, msgType: "user", message: "I was wondering what assignments I have due this week?" },
-            // { key: 109, msgType: "bot", message: "You have the following assignments due this week:\n\nSEN4800C - PERSONALITY EVALUATION is due on 28-OCT-2022 at 11:59PM.\n\nAPT3010 - PROJECT PRESENTATION is due on 27-OCT-2022 at 5:45PM." }
-        ];
         setMessages(msgs);
     }, []);
 
@@ -43,17 +40,28 @@ function ChatScreen({ navigation }, props) {
         setMessages(mymsgs);
         myTextInput.current.clear();
 
+        let bk = 101 + mymsgs.length;
+        mymsgs.push({ key: bk, msgType: "bot", message: "typing..." });
+        setMessages(mymsgs);
+
         axios
-            .post(baseURL, {
-                sender: "Mich",
-                message: msg
+            ({
+                method: 'post',
+                url: baseURL,
+                headers: {
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: {
+                    sender: "Mich",
+                    message: msg
+                }
             })
             .then((response) => {
-                //console.log(response.data[0].text);
-                setBotMsg(response.data[0].text);
+                let bm = response.data[0].text;
+                mymsgs = mymsgs.slice(0, mymsgs.length - 1);
                 let botkay = 101 + mymsgs.length;
-                mymsgs.push({ key: botkay, msgType: "bot", message: botMsg });
-                botMsg.clear;
+                mymsgs.push({ key: botkay, msgType:"bot", message: bm })
                 setMessages(mymsgs);
             });
     }
@@ -63,6 +71,7 @@ function ChatScreen({ navigation }, props) {
             <FlatList contentContainerStyle={{ paddingBottom: 10 }}
                 ref={scrollViewRef}
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
+                legacyImplementation="true"
                 data={messages}
                 extraData={messages}
                 renderItem={renderItem}
