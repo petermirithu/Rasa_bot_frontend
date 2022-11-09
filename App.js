@@ -5,7 +5,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/Screens/HomeScreen'
 import ChatScreen from './src/Screens/ChatScreen'
-import FlatlistScreen from './src/Screens/FlatlistScreen'
 import { useFonts } from 'expo-font'; 
 
 const Stack = createNativeStackNavigator();
@@ -25,7 +24,6 @@ function App() {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} options={{headerShown: false}} />
         <Stack.Screen name="Chat" component={ChatScreen} options={{headerShown: false}} />
-        <Stack.Screen name="Flatlist" component={FlatlistScreen} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
