@@ -1,15 +1,55 @@
-import React, { useState } from 'react';
-import { StyleSheet, ImageBackground, Image, Text, TextInput, View, Pressable, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, ImageBackground, Image, Text, TextInput, View, Pressable, Keyboard } from 'react-native';
+import { signInUser } from '../Services/ChatService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function HomeScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     const loginUser = async () => {
-        //Alert.alert("Login Successful", "You have successfully logged in.");
-        //navigation.navigate('Chat');
-        navigation.navigate('Chat');
+        setSubmitting(true);
+
+        let form = new FormData();
+        form.append('email', email);
+        form.append('password', password);
+        
+        if(email.length<3 || email.includes("@")==false){
+            alert("Please enter a valid Email");
+            setSubmitting(false);
+            return
+        }   
+        else if(password.length!=9){
+            alert("Please enter a valid password");
+            setSubmitting(false);
+            return
+        }
+        
+        Keyboard.dismiss();
+
+        signInUser(form).then(async response => {            
+            const stringProfile = JSON.stringify(response.data);
+            await AsyncStorage.setItem("profile", stringProfile);            
+            setEmail("");
+            setPassword("");
+            setSubmitting(false);
+            setTimeout(() => {
+                navigation.navigate('Chat');            
+            }, 1000);
+        }).catch(error => {          
+            console.log(error);
+            
+            setPassword("");
+            setEmail("");
+            setSubmitting(false);
+            alert(error?.response?.data)            
+        })
     }
+
+    useEffect(() => {
+
+    }, [email, password, submitting]);
 
     return (
         <View style={styles.container}>
@@ -48,7 +88,14 @@ function HomeScreen({ navigation }) {
                 <Pressable style={styles.buttonView}
                     title="Login"
                     onPress={loginUser}
-                ><Text style={styles.buttonText}>Login</Text></Pressable>
+                    disabled={(submitting == true) ? true : false}
+                >
+                    {submitting==true?
+                        <Text style={styles.buttonText}>Submitting ...</Text>
+                    :
+                        <Text style={styles.buttonText}>Login</Text>
+                    }
+                </Pressable>
             </ImageBackground>
         </View>
     );
@@ -58,39 +105,39 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      backgroundColor: "#fff",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: 'Playfair',
+        flex: 1,
+        backgroundColor: "#fff",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: 'Playfair',
     },
     logo: {
-      justifyContent: 'center',
-      flexDirection: 'column',
-      alignItems: 'center',
-      height: 125,
-      width: 125,
-      borderRadius: 100,
-      backgroundColor: "#FCCC06",
+        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
+        height: 125,
+        width: 125,
+        borderRadius: 100,
+        backgroundColor: "#FCCC06",
     },
     welcome: {
-      fontSize: 30,
-      alignItems: "center",
-      justifyContent: "center",
-      margin: 20,
-      color: "#fff",
-      fontFamily: 'Playfair',
+        fontSize: 30,
+        alignItems: "center",
+        justifyContent: "center",
+        margin: 20,
+        color: "#fff",
+        fontFamily: 'Playfair',
     },
     inputView: {
-      backgroundColor: "#FFE372",
-      borderRadius: 10,
-      fontSize: 10,
-      width: "75%",
-      height: 50,
-      marginTop: 20,
-      marginBottom: 10,
-      textAlign: "center",
-      alignItems: "center"
+        backgroundColor: "#FFE372",
+        borderRadius: 10,
+        fontSize: 10,
+        width: "75%",
+        height: 50,
+        marginTop: 20,
+        marginBottom: 10,
+        textAlign: "center",
+        alignItems: "center"
     },
     buttonView: {
         backgroundColor: "#FCCC06",
@@ -111,9 +158,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     TextInput: {
-      height: 50,
-      flex: 1,
-      fontSize: 20,
-      fontFamily: 'Playfair',
+        height: 50,
+        width:"100%",
+        flex: 1,
+        fontSize: 20,
+        fontFamily: 'Playfair',
+        textAlign:"center"
     }
-  });
+});

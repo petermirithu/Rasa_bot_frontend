@@ -1,33 +1,69 @@
 import axios from 'axios';
 import { BehaviorSubject } from 'rxjs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Variables
  */
-
-//const url = 'https://e360-41-89-4-199.in.ngrok.io/webhooks/RasaIO/webhook';
-// const baseURL = `http://192.168.0.11:4000/message`;
-const baseURL = `https://0bee-197-232-61-215.in.ngrok.io/webhooks/RasaIO/webhook`;
+const rasaServerUrl = `https://048c-197-237-181-157.ap.ngrok.io`;
+const backendServerUrl = 'https://rasa-bot-backend-petermirithu.cloud.okteto.net';
 
 
 /**
  * Observable section
  */
 
-const messages = new BehaviorSubject([{ key: 101, msgType: "bot", message: "Thank you for using the USIU Buzzbot. Please ask me anything!" }]);
+const messages = new BehaviorSubject([]);
 export const messages$=messages.asObservable();
 export const updateMessages = (data)=>{
     messages.next(data);
 };
 
+const getCachedProfile=async ()=>{    
+    const data=await AsyncStorage.getItem("profile");      
+    if(data){
+        const profile=JSON.parse(data)
+        return profile
+    }
+    else{
+        return null
+    }
+}
+
 /**
  * API Requests
  */
-export const postMessageToServer = (payload) => {
+export const signInUser = async (payload) => {    
     const config = {
         headers: {                
-            "Content-Type":"application/json"
+            "Content-Type":"multipart/form-data",            
+        }
+    }        
+    return axios.post(backendServerUrl+"/login_user", payload, config)    
+}
+
+
+export const postMessageToServer = async (payload) => {
+    let profile=null;
+    
+    await getCachedProfile().then(data => {
+        profile = data;        
+    });
+
+    const config = {
+        headers: {                
+            "Content-Type":"application/json",            
         }
     }    
-    return axios.post(baseURL, {sender: payload?.sender,message: payload?.message}, config)    
+    const rasa_data={
+        sender: profile?.stdId, 
+        message: payload?.message, 
+        token: profile?.stdToken,
+        metadata:{
+            firstname:profile?.stdFName,     
+            sender: profile?.stdId,        
+            token: profile?.stdToken,
+        }
+    }
+    return axios.post(rasaServerUrl+"/webhooks/RasaIO/webhook", rasa_data, config)    
 }

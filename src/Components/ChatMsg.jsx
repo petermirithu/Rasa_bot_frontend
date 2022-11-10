@@ -20,7 +20,7 @@ export default function ChatMsg({ msgType, message, buttons = [] }) {
         updateMessages(mymsgs);
 
         const payload = {
-            sender: "435253",
+            sender: "Mich",
             message: data,
         }
 
